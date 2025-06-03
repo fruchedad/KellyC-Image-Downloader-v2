@@ -1,0 +1,25 @@
+{
+  "name": "kellyc-image-downloader-enhanced",
+  "version": "1.3.0",
+  "description": "Enhanced image downloader extension for Chrome and Firefox/Waterfox",
+  "scripts": {
+    "build": "node build.js",
+    "build:chrome": "node build.js chrome",
+    "build:firefox": "node build.js firefox",
+    "clean": "node build.js clean",
+    "test": "echo \"No tests yet\"",
+    "lint": "eslint extension/**/*.js"
+  },
+  "keywords": [
+    "browser-extension",
+    "image-downloader",
+    "chrome",
+    "firefox",
+    "waterfox"
+  ],
+  "author": "nradiowave",
+  "license": "GPL-3.0",
+  "devDependencies": {
+    "eslint": "^8.0.0"
+  }
+}

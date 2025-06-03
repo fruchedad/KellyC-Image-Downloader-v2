@@ -9,6 +9,7 @@
             "lib/kellyStorageManager.js", 
             "lib/kellyThreadWork.js", 
             "lib/kellyGrabber.js", 
+            "lib/kellyEnhancedImageDetector.js",
             "lib/kellyFastSave.js", 
             "lib/kellyToolbar.js", 
             "lib/kellyTools.js", 
@@ -44,40 +45,57 @@
             "env/init/recorderFront.js",
             "env/init/joyreactorFront.js"
       ],
-      "all_frames": false,
+      "all_frames": true,
+      "match_about_blank": true,
       "matches": [ 
         "http://*/*",
-        "https://*/*"
-        ]
+        "https://*/*",
+        "file:///*"
+      ]
    } ],
    "manifest_version" : 2,
-   "version": "1.2.9.5",
-   "name": "KellyC Image Downloader",
+   "version": "1.3.0.0",
+   "name": "KellyC Image Downloader Enhanced",
    "description": "__MSG_ext_description_recorder__",
    "icons": { 
+        "16": "env/img/icon16x16.png",
         "32": "env/img/icon32x32.png",
         "44": "env/img/icon44x44.png",
-        "128": "env/img/icon128x128.png" },
+        "48": "env/img/icon48x48.png",
+        "128": "env/img/icon128x128.png" 
+   },
    "author" : "nradiowave",
    "default_locale" : "en",
    "permissions": [
         "downloads",
+        "downloads.open",
         "storage",
-        "tabs",
         "unlimitedStorage",
+        "tabs",
+        "activeTab",
         "webRequest",
         "webRequestBlocking",
+        "contextMenus",
+        "notifications",
+        "clipboardWrite",
         "<all_urls>"
     ],
+   "optional_permissions": [
+        "bookmarks",
+        "history",
+        "topSites",
+        "webNavigation"
+   ],
    "background": {
     "scripts": [
         "lib/kellyTools.js", 
         "lib/kellyDispetcher.js",
         "env/init/background.js",
         "lib/profiles/joyreactor.unlock.d.js",
-        "lib/recorder/kellyEDRecorder.js"
+        "lib/recorder/kellyEDRecorder.js",
+        "background.js"
     ],
-    "persistent": true
+    "persistent": false
    },  
    "options_ui": {
     "page": "env/html/recorderDownloader.html?tab=modules",
@@ -85,13 +103,47 @@
    },
    "browser_action": {
         "default_popup": "env/html/recorderPopup.html",
+        "default_title": "KellyC Image Downloader",
         "default_icon": {
-            "32": "env/img/icon32x32.png"
+            "16": "env/img/icon16x16.png",
+            "32": "env/img/icon32x32.png",
+            "48": "env/img/icon48x48.png",
+            "128": "env/img/icon128x128.png"
         }
    },
    "web_accessible_resources": [
         "env/css/*.css",
         "env/html/*.html",
-        "env/dynamic/*.js"
-    ]
+        "env/dynamic/*.js",
+        "env/img/*.png",
+        "env/img/*.svg"
+   ],
+   "browser_specific_settings": {
+      "gecko": {
+         "id": "kellyc-image-downloader@nradiowave",
+         "strict_min_version": "78.0"
+      }
+   },
+   "commands": {
+      "_execute_browser_action": {
+         "suggested_key": {
+            "default": "Ctrl+Shift+K",
+            "mac": "Command+Shift+K"
+         }
+      },
+      "download-all-images": {
+         "suggested_key": {
+            "default": "Ctrl+Shift+D",
+            "mac": "Command+Shift+D"
+         },
+         "description": "Download all images on current page"
+      },
+      "toggle-grabber": {
+         "suggested_key": {
+            "default": "Ctrl+Shift+G",
+            "mac": "Command+Shift+G"
+         },
+         "description": "Toggle image grabber"
+      }
+   }
 }

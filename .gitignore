@@ -1,0 +1,62 @@
+# Build output
+_build/
+*.zip
+*.xpi
+*.crx
+
+# Node modules
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# OS files
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+*~
+
+# IDE files
+.idea/
+.vscode/
+*.sublime-project
+*.sublime-workspace
+
+# Temporary files
+*.tmp
+*.temp
+*.log
+*.cache
+
+# Test coverage
+coverage/
+.nyc_output/
+
+# Environment files
+.env
+.env.local
+.env.*.local
+
+# Package lock files (optional - uncomment if you want to ignore)
+# package-lock.json
+# yarn.lock
+
+# Debug files
+debug/
+logs/
+
+# Backup files
+*.bak
+*.backup
+*.old
+
+# Private keys and certificates
+*.pem
+*.key
+*.cert
+*.crt
+
+# User-specific files
+personal/
+private/ 
