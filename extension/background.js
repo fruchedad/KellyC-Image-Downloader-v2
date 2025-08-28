@@ -325,7 +325,23 @@ async function tryEnhanceUrl(url, tab) {
   } else if (domain.includes('instagram.com')) {
     return url.replace(/\/s\d+x\d+\//, '/').replace(/\/c\d+\.\d+\.\d+\.\d+\//, '/');
   } else if (domain.includes('reddit.com')) {
-    return url.replace('preview.redd.it', 'i.redd.it');
+    // Enhanced Reddit URL processing
+    let enhancedUrl = url;
+    
+    // Convert preview URLs to high-res versions
+    enhancedUrl = enhancedUrl.replace('preview.redd.it', 'i.redd.it');
+    enhancedUrl = enhancedUrl.replace('external-preview.redd.it', 'i.redd.it');
+    
+    // Remove Reddit image processing parameters for original quality
+    enhancedUrl = enhancedUrl.replace(/\?[^?]*?(width|height|crop|format|auto=webp|s=)=[^&]*&?/g, '');
+    enhancedUrl = enhancedUrl.replace(/\?$/, '');
+    
+    // Handle imgur links properly (remove thumbnail indicators)
+    if (enhancedUrl.includes('imgur.com')) {
+      enhancedUrl = enhancedUrl.replace(/\/([a-zA-Z0-9]+)[bsthlm]\.(jpg|jpeg|png|gif|webp)$/i, '/$1.$2');
+    }
+    
+    return enhancedUrl;
   }
   
   // Generic enhancements

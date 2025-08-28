@@ -265,6 +265,81 @@ var KellyEnhancedImageDetector = (function() {
                     this.addImage(e.detail.url, 'custom-event', e.target);
                 }
             });
+            
+            // Reddit-specific event listeners
+            if (window.location.hostname.includes('reddit.com')) {
+                this.setupRedditSpecificListeners();
+            }
+        },
+        
+        setupRedditSpecificListeners: function() {
+            // Listen for Reddit's dynamic content loading
+            const redditObserver = new MutationObserver(mutations => {
+                mutations.forEach(mutation => {
+                    if (mutation.addedNodes) {
+                        mutation.addedNodes.forEach(node => {
+                            if (node.nodeType === 1) { // Element node
+                                // Check for Reddit gallery items
+                                const galleryItems = node.querySelectorAll ? 
+                                    node.querySelectorAll('[data-testid="gallery-item"], .gallery-item, ._3Oa0THmZ3f5iZXAsTrDTYz') : [];
+                                galleryItems.forEach(item => this.scanElement(item));
+                                
+                                // Check for Reddit post content
+                                const postContent = node.querySelectorAll ? 
+                                    node.querySelectorAll('[data-testid="post-content"], .Post-body, .RichTextJSON-root') : [];
+                                postContent.forEach(content => this.scanElement(content));
+                                
+                                // Check for video elements
+                                const videos = node.querySelectorAll ? 
+                                    node.querySelectorAll('video, [data-click-id="media"]') : [];
+                                videos.forEach(video => this.processVideoElement(video));
+                            }
+                        });
+                    }
+                });
+            });
+            
+            redditObserver.observe(document.body, {
+                childList: true,
+                subtree: true
+            });
+            
+            this.observers.set('reddit-specific', redditObserver);
+        },
+        
+        processVideoElement: function(video) {
+            if (!this.config.includeVideo) return;
+            
+            let videoUrl = null;
+            
+            if (video.tagName === 'VIDEO') {
+                videoUrl = video.src || (video.querySelector('source') && video.querySelector('source').src);
+            } else {
+                // Check for data attributes that might contain video URLs
+                const dataAttrs = ['data-url', 'data-src', 'data-video-url', 'data-fallback-url'];
+                for (const attr of dataAttrs) {
+                    if (video.hasAttribute(attr)) {
+                        videoUrl = video.getAttribute(attr);
+                        break;
+                    }
+                }
+            }
+            
+            if (videoUrl && this.isValidVideoUrl(videoUrl)) {
+                this.addImage(videoUrl, 'video', video);
+            }
+        },
+        
+        isValidVideoUrl: function(url) {
+            if (!url) return false;
+            
+            const videoExts = ['.mp4', '.webm', '.mov', '.avi', '.gif'];
+            const videoDomains = ['v.redd.it', 'redgifs.com', 'gfycat.com'];
+            
+            const lowerUrl = url.toLowerCase();
+            
+            return videoExts.some(ext => lowerUrl.includes(ext)) ||
+                   videoDomains.some(domain => lowerUrl.includes(domain));
         },
         
         scanElement: function(element) {
