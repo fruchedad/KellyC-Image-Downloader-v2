@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reddit Filter Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 40px auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .test-section {
+            background: white;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        h2 {
+            color: #333;
+            margin-top: 0;
+        }
+        .feature {
+            margin: 10px 0;
+            padding: 10px;
+            background: #f0f0f0;
+            border-radius: 4px;
+        }
+        .feature-title {
+            font-weight: bold;
+            color: #0066cc;
+        }
+        code {
+            background: #e0e0e0;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-size: 14px;
+        }
+        ul {
+            margin: 10px 0;
+        }
+        li {
+            margin: 5px 0;
+        }
+    </style>
+</head>
+<body>
+    <h1>Reddit Image Downloader - Enhanced Features</h1>
+    
+    <div class="test-section">
+        <h2>🎯 Bug Fixes Applied</h2>
+        
+        <div class="feature">
+            <div class="feature-title">✅ Fixed: Now processes ALL posts on a page</div>
+            <p>Previously, the extension would stop after the first post due to a <code>break</code> statement. This has been removed, allowing the extension to grab images from all visible posts.</p>
+        </div>
+        
+        <div class="feature">
+            <div class="feature-title">✅ Fixed: High-resolution image extraction</div>
+            <p>The extension now properly decodes Reddit URLs and converts preview URLs to full-resolution versions automatically.</p>
+        </div>
+    </div>
+    
+    <div class="test-section">
+        <h2>🚀 New Features Added</h2>
+        
+        <div class="feature">
+            <div class="feature-title">📸 Gallery Support</div>
+            <p>Full support for Reddit gallery posts with multiple images. The extension will:</p>
+            <ul>
+                <li>Extract all images from gallery posts</li>
+                <li>Get the highest quality version available</li>
+                <li>Support both new and old Reddit layouts</li>
+            </ul>
+        </div>
+        
+        <div class="feature">
+            <div class="feature-title">🎥 Enhanced Video Support</div>
+            <p>Improved extraction of Reddit-hosted videos:</p>
+            <ul>
+                <li>Attempts to get multiple quality versions (1080p, 720p, 480p, etc.)</li>
+                <li>Extracts both DASH and HLS streams</li>
+                <li>Constructs direct video URLs for easier downloading</li>
+            </ul>
+        </div>
+        
+        <div class="feature">
+            <div class="feature-title">🌐 Better External Media Handling</div>
+            <p>Improved support for external image hosts like Imgur, Gfycat, and RedGifs.</p>
+        </div>
+        
+        <div class="feature">
+            <div class="feature-title">🏷️ New Categories</div>
+            <p>Added new image categories for better organization:</p>
+            <ul>
+                <li><strong>Gallery images</strong> - Images from Reddit galleries</li>
+                <li><strong>Reddit videos</strong> - Videos hosted on Reddit</li>
+                <li><strong>External images</strong> - Images from external sources</li>
+                <li><strong>Preview images</strong> - Lower quality preview versions</li>
+            </ul>
+        </div>
+    </div>
+    
+    <div class="test-section">
+        <h2>🧪 Testing Instructions</h2>
+        
+        <ol>
+            <li><strong>Build the extension:</strong> Run <code>npm run build</code> in the terminal</li>
+            <li><strong>Load in browser:</strong> Load the built extension in Chrome/Firefox developer mode</li>
+            <li><strong>Test on Reddit:</strong> Visit various Reddit pages to test:
+                <ul>
+                    <li>Gallery posts (posts with multiple images)</li>
+                    <li>Single image posts</li>
+                    <li>Video posts</li>
+                    <li>GIF posts</li>
+                    <li>User profiles with mixed content</li>
+                    <li>Subreddit pages</li>
+                </ul>
+            </li>
+            <li><strong>Verify:</strong> Check that all images are captured and high-resolution versions are available</li>
+        </ol>
+    </div>
+    
+    <div class="test-section">
+        <h2>📝 Summary of Changes</h2>
+        
+        <p>The Reddit filter (<code>extension/lib/recorder/filters/reddit.js</code>) has been significantly improved to:</p>
+        
+        <ul>
+            <li>Process all posts on a page (not just the first one)</li>
+            <li>Extract high-resolution images instead of just previews</li>
+            <li>Support Reddit galleries with multiple images</li>
+            <li>Better handle Reddit-hosted videos</li>
+            <li>Support both old and new Reddit layouts</li>
+            <li>Add proper categorization for different media types</li>
+            <li>Include a URL decoder helper function for proper URL handling</li>
+        </ul>
+    </div>
+</body>
+</html>
