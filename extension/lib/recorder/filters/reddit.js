@@ -46,13 +46,12 @@ KellyRecorderFilterReddit.parseImagesDocByDriver = function(handler, data) {
      
     if (handler.url.indexOf('reddit.com') == -1) return;
         
-    var pageDataRegExp = /window\.___r[\s]*=[\s]*\{([\s\S]*)\}\}\;<\/script/g
-    var pageData = pageDataRegExp.exec(data.thread.response);
+    var pageDataRegExp = /window\.___r\s*=\s*(\{[\s\S]*?\})\s*;/;
+    var pageDataMatch = pageDataRegExp.exec(data.thread.response);
 
-    if (pageData) {
-        
+    if (pageDataMatch) {
         try {
-            var redditData = JSON.parse('{' + pageData[1] + '}}');
+            var redditData = JSON.parse(pageDataMatch[1]);
             
             for (var postId in redditData.posts.models) {
                 
@@ -78,7 +77,6 @@ KellyRecorderFilterReddit.parseImagesDocByDriver = function(handler, data) {
                     });
                 }
                 
-                break;
             }
         
         } catch (e) {
