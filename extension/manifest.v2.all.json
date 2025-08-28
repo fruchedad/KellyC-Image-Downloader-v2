@@ -34,6 +34,7 @@
             "lib/recorder/filters/flickr.js", 
             "lib/recorder/filters/pikabu.js", 
             "lib/recorder/filters/reddit.js", 
+            "lib/recorder/filters/reddit-modern.js", 
             "lib/recorder/filters/bsky.js", 
             "lib/recorder/filters/9gag.js", 
             "lib/recorder/filters/hfoundry.js",
