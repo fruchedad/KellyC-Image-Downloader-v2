@@ -45,48 +45,98 @@ KellyRecorderFilterReddit.addItemByDriver = function(handler, data) {
 KellyRecorderFilterReddit.parseImagesDocByDriver = function(handler, data) {    
      
     if (handler.url.indexOf('reddit.com') == -1) return;
-        
-    var pageDataRegExp = /window\.___r[\s]*=[\s]*\{([\s\S]*)\}\}\;\<\/script/g
-    var pageData = pageDataRegExp.exec(data.thread.response);
+		
+	// helpers
+	var decodeHtmlEntities = function(str) {
+		if (!str || typeof str.replace != 'function') return str;
+		return str.replace(/&amp;/g, '&');
+	}
 
-    if (pageData) {
-        
-        try {
-            var redditData = JSON.parse('{' + pageData[1] + '}}');
-            
-            for (var postId in redditData.posts.models) {
-                
-                var model = redditData.posts.models[postId];
-                
-                if (model.media.mediaMetadata ) {
-                    for (var mediaId in model.media.mediaMetadata) {
-                        
-                        if (model.media.mediaMetadata[mediaId].s) {
-                            
-                            handler.imagesPool.push({
-                                relatedSrc : [ model.media.mediaMetadata[mediaId].s.u ], 
-                                relatedGroups : [['reddit_orig']] 
-                            });
-                        }
-                        
-                    }
-                    
-                } else if (redditData.posts.models[postId].media.content) {
-                    handler.imagesPool.push({
-                        relatedSrc : [ redditData.posts.models[postId].media.content ], 
-                        relatedGroups : [['reddit_orig']] 
-                    });
-                }
-                
-                break;
-            }
-        
-        } catch (e) {
-            console.log(e);
-        }
-    }
-    
-    return true;
+	var addUrl = function(url) {
+		if (!url) return;
+		url = decodeHtmlEntities(url);
+		handler.imagesPool.push({
+			relatedSrc : [ url ],
+			relatedGroups : [['reddit_orig']]
+		});
+	}
+
+	// Try to extract window.___r JSON first
+	var pageDataMatch = data.thread.response.match(/<script[^>]*>\s*window\.___r\s*=\s*({[\s\S]*?});\s*<\/script>/);
+
+	if (pageDataMatch && pageDataMatch[1]) {
+		try {
+			var redditData = JSON.parse(pageDataMatch[1]);
+			if (redditData && redditData.posts && redditData.posts.models) {
+				for (var postId in redditData.posts.models) {
+					var model = redditData.posts.models[postId];
+					if (!model) continue;
+
+					// Galleries / multiple media
+					if (model.media && model.media.mediaMetadata) {
+						for (var mediaId in model.media.mediaMetadata) {
+							var media = model.media.mediaMetadata[mediaId];
+							if (media && media.s && media.s.u) {
+								addUrl(media.s.u);
+							} else if (media && media.p && media.p.length) {
+								// fallback to the largest preview if source missing
+								addUrl(media.p[media.p.length - 1].u);
+							}
+						}
+					}
+
+					// Single media content
+					else if (model.media && model.media.content) {
+						addUrl(model.media.content);
+					}
+
+					// Fallback: preview images block
+					else if (model.preview && model.preview.images && model.preview.images.length) {
+						var images = model.preview.images;
+						for (var i = 0; i < images.length; i++) {
+							if (images[i].source && images[i].source.url) addUrl(images[i].source.url);
+							if (images[i].resolutions && images[i].resolutions.length) {
+								addUrl(images[i].resolutions[images[i].resolutions.length - 1].url);
+							}
+						}
+					}
+				}
+			}
+		} catch (e) {
+			console.log(e);
+		}
+	} else {
+		// Fallback to __NEXT_DATA__ (new Reddit)
+		try {
+			var nextDataMatch = data.thread.response.match(/<script[^>]*id="__NEXT_DATA__"[^>]*>([\s\S]*?)<\/script>/);
+			if (nextDataMatch && nextDataMatch[1]) {
+				var nextData = JSON.parse(nextDataMatch[1]);
+				// Best-effort traversal for posts media
+				var posts = [];
+				try {
+					if (nextData.props && nextData.props.pageProps && nextData.props.pageProps.post) posts.push(nextData.props.pageProps.post);
+					if (nextData.props && nextData.props.pageProps && nextData.props.pageProps.posts) posts = posts.concat(nextData.props.pageProps.posts);
+				} catch (e) {}
+
+				for (var p = 0; p < posts.length; p++) {
+					var pm = posts[p];
+					if (!pm) continue;
+					if (pm.media && pm.media.mediaMetadata) {
+						for (var mm in pm.media.mediaMetadata) {
+							var m = pm.media.mediaMetadata[mm];
+							if (m && m.s && m.s.u) addUrl(m.s.u);
+						}
+					} else if (pm.url) {
+						addUrl(pm.url);
+					}
+				}
+			}
+		} catch (e) {
+			console.log(e);
+		}
+	}
+
+	return true;
 }
      
 KellyRecorderFilterReddit.onStartRecord = function(handler, data) {
