@@ -46,7 +46,7 @@ KellyRecorderFilterReddit.parseImagesDocByDriver = function(handler, data) {
      
     if (handler.url.indexOf('reddit.com') == -1) return;
         
-    var pageDataRegExp = /window\.___r[\s]*=[\s]*\{([\s\S]*)\}\}\;\<\/script/g
+    var pageDataRegExp = /window\.___r[\s]*=[\s]*\{([\s\S]*)\}\}\;<\/script/g
     var pageData = pageDataRegExp.exec(data.thread.response);
 
     if (pageData) {
