@@ -283,6 +283,14 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
       enhanceImageUrl(request.url, sender.tab).then(sendResponse);
       return true; // Will respond asynchronously
       
+    case 'enhanceRedditImage':
+      enhanceRedditImage(request.url, sender.tab).then(sendResponse);
+      return true; // Will respond asynchronously
+      
+    case 'downloadRedditGallery':
+      handleRedditGalleryDownload(request.galleryUrl, sender.tab).then(sendResponse);
+      return true; // Will respond asynchronously
+      
     default:
       console.warn('Unknown action:', request.action);
   }
@@ -315,6 +323,150 @@ async function enhanceImageUrl(url, tab) {
   return { url, enhanced: false };
 }
 
+// Reddit-specific image enhancement
+async function enhanceRedditImage(url, tab) {
+  try {
+    // Handle different Reddit image types
+    let enhancedUrl = url;
+    
+    // Convert preview URLs to full resolution
+    if (url.includes('preview.redd.it')) {
+      enhancedUrl = url.replace('preview.redd.it', 'i.redd.it');
+    }
+    
+    // Handle Reddit media URLs
+    if (url.includes('v.redd.it')) {
+      // For video posts, try to get thumbnail
+      enhancedUrl = url.replace('v.redd.it', 'i.redd.it') + '.jpg';
+    }
+    
+    // Handle Reddit gallery URLs
+    if (url.includes('g.redditmedia.com')) {
+      // Try to get higher resolution version
+      enhancedUrl = url.replace(/\?.*$/, '') + '?format=jpg&name=orig';
+    }
+    
+    // Handle Imgur URLs embedded in Reddit
+    if (url.includes('i.imgur.com')) {
+      // Try to get original size
+      enhancedUrl = url.replace(/\?.*$/, '') + '?format=jpg&name=orig';
+    }
+    
+    // Remove size parameters and get original
+    enhancedUrl = enhancedUrl
+      .replace(/&amp;/g, '&')
+      .replace(/&w=\d+/, '')
+      .replace(/&h=\d+/, '')
+      .replace(/&crop=\d+/, '')
+      .replace(/&fit=\w+/, '')
+      .replace(/&fm=\w+/, '')
+      .replace(/&q=\d+/, '');
+    
+    // Validate enhanced URL
+    if (enhancedUrl !== url) {
+      try {
+        const response = await fetch(enhancedUrl, { method: 'HEAD' });
+        if (response.ok) {
+          return { url: enhancedUrl, enhanced: true };
+        }
+      } catch (error) {
+        console.log('Enhanced Reddit URL failed, using original:', error);
+      }
+    }
+    
+    return { url, enhanced: false };
+  } catch (error) {
+    console.error('Error enhancing Reddit image:', error);
+    return { url, enhanced: false };
+  }
+}
+
+// Handle Reddit gallery downloads
+async function handleRedditGalleryDownload(galleryUrl, tab) {
+  try {
+    // Extract gallery ID from URL
+    const galleryMatch = galleryUrl.match(/\/gallery\/([a-zA-Z0-9]+)/);
+    if (!galleryMatch) {
+      throw new Error('Invalid Reddit gallery URL');
+    }
+    
+    const galleryId = galleryMatch[1];
+    
+    // Try to get gallery data from Reddit API
+    const apiUrl = `https://www.reddit.com/api/info.json?id=t3_${galleryId}`;
+    const response = await fetch(apiUrl);
+    const data = await response.json();
+    
+    if (data.data && data.data.children && data.data.children[0]) {
+      const post = data.data.children[0].data;
+      
+      if (post.gallery_data && post.media_metadata) {
+        const images = [];
+        
+        // Process each image in the gallery
+        for (const item of post.gallery_data.items) {
+          const mediaId = item.media_id;
+          const mediaData = post.media_metadata[mediaId];
+          
+          if (mediaData && mediaData.s && mediaData.s.u) {
+            // Get the highest quality version
+            let imageUrl = mediaData.s.u;
+            
+            // Try to enhance the URL
+            const enhanced = await enhanceRedditImage(imageUrl, tab);
+            
+            images.push({
+              url: enhanced.url,
+              filename: generateRedditFilename(enhanced.url, post.title, item.id),
+              enhanced: enhanced.enhanced
+            });
+          }
+        }
+        
+        // Download all images in the gallery
+        if (images.length > 0) {
+          console.log(`Downloading Reddit gallery with ${images.length} images`);
+          await handleBatchDownload(images, tab);
+          return { success: true, count: images.length };
+        }
+      }
+    }
+    
+    throw new Error('Could not extract gallery data');
+  } catch (error) {
+    console.error('Error handling Reddit gallery download:', error);
+    return { success: false, error: error.message };
+  }
+}
+
+// Generate filename for Reddit images
+function generateRedditFilename(url, postTitle, itemId) {
+  try {
+    // Clean post title for filename
+    const cleanTitle = postTitle
+      .replace(/[<>:"/\\|?*]/g, '_')
+      .substring(0, 50)
+      .trim();
+    
+    // Extract file extension from URL
+    const urlObj = new URL(url);
+    const pathname = urlObj.pathname;
+    let extension = pathname.substring(pathname.lastIndexOf('.'));
+    
+    // Default to .jpg if no extension found
+    if (!extension || extension.length > 5) {
+      extension = '.jpg';
+    }
+    
+    // Generate filename
+    const timestamp = Date.now();
+    return `${cleanTitle}_${itemId}_${timestamp}${extension}`;
+  } catch (error) {
+    console.error('Error generating Reddit filename:', error);
+    return `reddit_image_${Date.now()}.jpg`;
+  }
+}
+
 // URL enhancement logic
 async function tryEnhanceUrl(url, tab) {
   const domain = new URL(tab.url).hostname;
@@ -325,7 +477,43 @@ async function tryEnhanceUrl(url, tab) {
   } else if (domain.includes('instagram.com')) {
     return url.replace(/\/s\d+x\d+\//, '/').replace(/\/c\d+\.\d+\.\d+\.\d+\//, '/');
   } else if (domain.includes('reddit.com')) {
-    return url.replace('preview.redd.it', 'i.redd.it');
+    // Enhanced Reddit URL processing
+    let enhancedUrl = url;
+    
+    // Convert preview URLs to full resolution
+    if (url.includes('preview.redd.it')) {
+      enhancedUrl = url.replace('preview.redd.it', 'i.redd.it');
+    }
+    
+    // Handle Reddit media URLs
+    if (url.includes('v.redd.it')) {
+      // For video posts, try to get thumbnail
+      enhancedUrl = url.replace('v.redd.it', 'i.redd.it') + '.jpg';
+    }
+    
+    // Handle Reddit gallery URLs
+    if (url.includes('g.redditmedia.com')) {
+      // Try to get higher resolution version
+      enhancedUrl = url.replace(/\?.*$/, '') + '?format=jpg&name=orig';
+    }
+    
+    // Handle Imgur URLs embedded in Reddit
+    if (url.includes('i.imgur.com')) {
+      // Try to get original size
+      enhancedUrl = url.replace(/\?.*$/, '') + '?format=jpg&name=orig';
+    }
+    
+    // Remove size parameters and get original
+    enhancedUrl = enhancedUrl
+      .replace(/&amp;/g, '&')
+      .replace(/&w=\d+/, '')
+      .replace(/&h=\d+/, '')
+      .replace(/&crop=\d+/, '')
+      .replace(/&fit=\w+/, '')
+      .replace(/&fm=\w+/, '')
+      .replace(/&q=\d+/, '');
+    
+    return enhancedUrl;
   }
   
   // Generic enhancements

@@ -1,7 +1,7 @@
 {
   "name": "kellyc-image-downloader-enhanced",
-  "version": "1.3.0",
-  "description": "Enhanced image downloader extension for Chrome and Firefox/Waterfox",
+  "version": "1.3.1",
+  "description": "Enhanced image downloader extension for Chrome and Firefox/Waterfox with improved Reddit support",
   "scripts": {
     "build": "node build.js",
     "build:chrome": "node build.js chrome",
@@ -15,7 +15,9 @@
     "image-downloader",
     "chrome",
     "firefox",
-    "waterfox"
+    "waterfox",
+    "reddit",
+    "gallery-downloader"
   ],
   "author": "nradiowave",
   "license": "GPL-3.0",
